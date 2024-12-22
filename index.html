@@ -9,7 +9,7 @@
     <meta name="description" content="A helper for Path of Exile's Blight League.">
     <meta property="og:title" content="Path of Exile - Blight Helper">
     <meta property="og:description" content="A helper for Path of Exile's Blight League.">
-    <meta property="og:image" content="https://blight.raelys.com/img/oils/golden_oil.png">
+    <meta property="og:image " content="https://blight.raelys.com/img/oils/golden_oil.png">
 
     <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
     <link rel="icon" href="favicon.ico" type="image/x-icon">
@@ -30,7 +30,7 @@
   <body>
     <div class="container-fluid" id="app">
       <div class="row mt-3">
-        <div class="col-12 col-lg-5 col-xl-4 offset-xl-1">
+        <!-- <div class="col-12 col-lg-5 col-xl-4 offset-xl-1">
           <div class="d-flex flex-column align-items-center">
             <div class="anointing px-3 py-2">
               <h1 class="text-center">{{ _.capitalize(type) }} Anointing</h1>
@@ -70,7 +70,7 @@
               </div>
             </div>
           </div>
-        </div>
+        </div> -->
         <div class="col-12 col-lg-5 offset-lg-1 col-xl-6 mt-4 mt-lg-0 mx-auto">
           <div class="d-flex align-items-center mb-2">
             <input type="text" name="search" v-model="search" placeholder="Search by name or description..." class="flex-grow-1">
@@ -80,7 +80,16 @@
             Input your oils below to see which anointments are available (vendor recipe included.)
             <br><i>Note: Prismatic Oil cannot actually be obtained by vendor recipe.</i>
           </p>
-          <div class="my-oils d-flex flex-wrap justify-content-center">
+          <div class="my-distilled-emotions d-flex flex-wrap justify-content-center">
+            <div v-for="(distilled, i) in distilledEmotions" class="d-flex flex-column align-items-center mt-2">
+              <label :for="`distilled-${i}`">
+                <img :src="distilled.image" :alt="distilled.name" :title="distilled.name" data-toggle="tooltip">
+              </label>
+              <input type="number" name="`oil-${i}`" min="0" max="999" :id="`oil-${i}`" v-model="myOils[i]"
+                onClick="this.select()">
+            </div>
+          </div>
+          <!-- <div class="my-oils d-flex flex-wrap justify-content-center">
             <div v-for="(oil, i) in oils" class="d-flex flex-column align-items-center mt-2">
               <label :for="`oil-${i}`">
                 <img :src="oil.image" :alt="oil.name" :title="oil.name" data-toggle="tooltip">
@@ -88,32 +97,29 @@
               <input type="number" name="`oil-${i}`" min="0" max="999" :id="`oil-${i}`" v-model="myOils[i]"
                 onClick="this.select()">
             </div>
-          </div>
-          <div class="tower-select d-flex flex-wrap justify-content-center" :class="type === 'ring' ? '' : 'hidden'">
-            <div v-for="group in _.chunk(towers, 3)">
-              <img v-for="tower in group" v-on:click="search = tower.name" :src="tower.image" class="icon"
-                :title="`<b>${tower.name}</b><br>${tower.description}`" data-toggle="tooltip" data-html="true">
-            </div>
-          </div>
+          </div> -->
           <div class="table-data mt-3" :class="type === 'ring' ? 'short' : ''">
-            <anointments-table :anointments="anointments" :type="type" :search="search" :my-oils="myOils">
+            <distilled-emotions-table :passives="passives2" :type="type" :search="search" :my-oils="myOils">
           </div>
+          <!-- <div class="table-data mt-3" :class="type === 'ring' ? 'short' : ''">
+            <anointments-table :anointments="anointments" :type="type" :search="search" :my-oils="myOils">
+          </div> -->
         </div>
       </div>
     </div>
   </body>
   <footer>
-    <span>Created by Raelys (v3.25) — </span>
+    <span>Created by Raelys (v3.25) — Updated by fmieres </span>
     <div>
       <svg xmlns="http://www.w3.org/2000/svg" width="30" height="20">
         <rect width="30" height="20" fill="#005BBB"/>
         <rect width="30" height="10" y="10" fill="#FFD500"/>
       </svg>
-      <span>Слава Україні</span>
+      <!-- <span>Слава Україні</span>
     </div>
     <a href="https://github.com/mattantonelli/poe-blight" target="_blank">
       <img src="img/github.png" alt="https://github.com/mattantonelli/poe-blight" class="github">
-    </a>
+    </a> -->
   </footer>
 </html>
 
@@ -123,7 +129,7 @@
       <tr>
         <th scope="col" v-on:click="sortBy('name')" v-html="sortHeader('Name')"></th>
         <th scope="col" v-on:click="sortBy('description')" v-html="sortHeader('Description')"></th>
-        <th scope="col" v-if="!isMapType()">Oils</th>
+        <th scope="col">Distilled Emotions</th>
       </tr>
     </thead>
     <tbody>
@@ -135,8 +141,33 @@
           </div>
         </td>
         <td class="description" v-html="formatDescription(anointment)"></td>
-        <td class="oils" v-if="!isMapType()">
+        <td class="distilledEmotions">
           <img v-for="oil in anointment.combo" :src="oil.image" :alt="oil.name" :title="oil.name" data-toggle="tooltip">
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</script>
+
+<script type="text/x-template" id="distilled-emotions-table">
+  <table class="table table-bordered table-sm mb-0">
+    <thead>
+      <tr>
+        <th scope="col" v-on:click="sortBy('name')" v-html="sortHeader('Name')"></th>
+        <th scope="col" v-on:click="sortBy('description')" v-html="sortHeader('Description')"></th>
+        <th scope="col" >Oils</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr v-for="passive in searchResults">
+        <td class="name">
+          <div class="d-flex align-items-center h-100">
+            <a href="#" @click.prevent="setCombo(passive)">{{ passive.name }}</a>
+          </div>
+        </td>
+        <td class="description" v-html="formatDescription(passive)"></td>
+        <td class="oils">
+          <img v-for="oil in passive.combo" :src="oil.image" :alt="oil.name" :title="oil.name" data-toggle="tooltip">
         </td>
       </tr>
     </tbody>

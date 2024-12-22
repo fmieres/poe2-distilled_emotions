@@ -24,6 +24,9 @@ const app = new Vue({
       { name: 'Golden Oil', level: 80 },
       { name: 'Prismatic Oil', level: 80 },
     ],
+    passives2: [],
+    distilledEmotions: [],
+    distilledEmotionsLoaded: {},
     combo: [],
     type: 'amulet',
     passives: {},
@@ -35,6 +38,25 @@ const app = new Vue({
   },
   created: function () {
     const self = this
+
+    $.getJSON(`vendor/currencies.json`, function (data) {
+      self.distilledEmotionsLoaded = data
+      self.distilledEmotions = Object.keys(data).reduce(
+        (fx,x) => {
+          fx.push({name:x, image: data[x].img })
+          return fx
+        } , [])
+    })
+    $.getJSON(`vendor/passives2.json`, function (data) {
+      self.passives2 = Object.keys(data).reduce(
+        (fx,x) => {
+          fx.push({
+            name:x, 
+            combo: data[x].currencies.map(c=> ({name:c, image: self.distilledEmotionsLoaded[c].img })),
+            description: data[x].mods.reduce((fx,x)=>fx + '<br/>' + x,'' ) })
+          return fx
+        } , [])
+    })
 
     _.map(this.oils, function (oil, i) {
       oil.image = `img/oils/${oil.name.toLowerCase().replace(' ', '_')}.png`
@@ -333,6 +355,105 @@ Vue.component('anointments-table', {
 
       refreshTableTooltips()
 
+      console.log(results)
+      return results
+    }
+  }
+})
+
+Vue.component('distilled-emotions-table', {
+  props: ['passives', 'type', 'search', 'myOils'],
+  data: function() {
+    return { sortKey: null, sortOrder: 'asc' }
+  },
+  template: '#distilled-emotions-table',
+  methods: {
+    getAnointmentCombo: function(value) {
+      value = parseInt(value)
+
+      var combo = []
+      const maxOils = this.$parent.maxOils
+
+      // Build up the oil combination by collecting the largest value oils usable
+      while (value > 0) {
+        const oil = _.maxBy(this.$parent.oils, function(oil) {
+          if (value - oil.value > 0 || (value - oil.value === 0 && (combo.length === maxOils - 1))) {
+            return oil.value
+          }
+        })
+
+        combo.push(oil)
+        value -= oil.value
+      }
+
+      return combo
+      
+    },
+    setCombo: function(anointment) {
+      this.$parent.combo = [...anointment.combo]
+    },
+    formatDescription: function(anointment) {
+      return anointment.description
+    },
+    sortBy: function(key) {
+      if (this.sortKey === key) {
+        this.sortOrder = this.sortOrder === 'asc' ? 'desc' : 'asc'
+      } else {
+        this.sortOrder = 'asc'
+      }
+
+      this.sortKey = key
+    },
+    sortHeader: function(key) {
+      if (this.sortKey === key.toLowerCase()) {
+        return `<u>${key}</u>${this.sortOrder === 'asc' ? "\u23F7" : "\u23F6"}`
+      } else {
+        return `<u>${key}</u>`
+      }
+    }
+  },
+  computed: {
+    searchResults: function() {
+      const search = this.search.toLowerCase()
+      const oils = _.map(this.myOils, function(x) { return parseInt(x) })
+      const oilCount = _.sum(oils)
+      const maxOils = this.$parent.maxOils
+      var results = this.passives
+
+      // if (search !== '') {
+      //   results = _.pickBy(results, function(anointment) {
+      //     return anointment.name.toLowerCase().indexOf(search) > -1 ||
+      //       anointment.description.toLowerCase().indexOf(search) > -1
+      //   })
+      // }
+
+      // if (oilCount > 0 && oilCount < maxOils) {
+      //   // Show no results if an inadequate amount of oils are selected
+      //   results = {}
+      // } else if (oilCount >= maxOils) {
+      //   results = _.pickBy(results, function(anointment) {
+      //     var value = anointment.value
+      //     var totalUsed = 0
+
+      //     // Loop through the user's selected oils, from largest to smallest
+      //     for (i = oils.length - 1; i > -1; i--) {
+      //       const oilValue = 3 ** i
+      //       // If the value of the oil fits into our running value of the anointment, we can use it
+      //       for (q = oils[i]; q > 0 && (value > oilValue || value === oilValue && totalUsed >= maxOils - 1); q--) {
+      //         value -= oilValue
+      //         totalUsed += 1
+      //       }
+      //     }
+
+      //     // If we managed to bring the value of the anointment down to 0, it is obtainable
+      //     return value === 0
+      //   })
+      // }
+
+      // Sort the distilledEmotion based on the selected column
+      // 
+
+      refreshTableTooltips()
       return results
     }
   }
