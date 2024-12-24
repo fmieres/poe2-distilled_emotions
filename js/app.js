@@ -34,6 +34,7 @@ const app = new Vue({
     towers: {},
     maps: {},
     search: '',
+    myDistilled: {},
     myOils: _.fill(Array(14), 0)
   },
   created: function () {
@@ -46,6 +47,8 @@ const app = new Vue({
           fx.push({name:x, image: data[x].img })
           return fx
         } , [])
+      self.myDistilled = Object.keys(data).reduce(
+        (fx,x) => ({...fx, [x]:0 }) , {})
     })
     $.getJSON(`vendor/passives2.json`, function (data) {
       self.passives2 = Object.keys(data).reduce(
@@ -226,143 +229,8 @@ const app = new Vue({
   }
 })
 
-Vue.component('anointments-table', {
-  props: ['anointments', 'type', 'search', 'myOils'],
-  data: function() {
-    return { sortKey: null, sortOrder: 'asc' }
-  },
-  template: '#anointments-table',
-  methods: {
-    isMapType: function() {
-      return app.isMapType()
-    },
-    getAnointmentCombo: function(value) {
-      value = parseInt(value)
-
-      if (this.isMapType()) {
-        const oil = _.find(this.$parent.oils, function(oil) {
-          return oil.value === value
-        })
-
-        return [oil]
-      } else {
-        var combo = []
-        const maxOils = this.$parent.maxOils
-
-        // Build up the oil combination by collecting the largest value oils usable
-        while (value > 0) {
-          const oil = _.maxBy(this.$parent.oils, function(oil) {
-            if (value - oil.value > 0 || (value - oil.value === 0 && (combo.length === maxOils - 1))) {
-              return oil.value
-            }
-          })
-
-          combo.push(oil)
-          value -= oil.value
-        }
-
-        return combo
-      }
-    },
-    setCombo: function(anointment) {
-      if (this.isMapType()) {
-        const oil = _.find(this.$parent.oils, function(oil) {
-          return oil.value === parseInt(anointment.value)
-        })
-
-        this.$parent.addOil(oil)
-      } else {
-        this.$parent.combo = [...anointment.combo]
-      }
-    },
-    formatDescription: function(anointment) {
-      if (this.isMapType()) {
-        description = `${anointment.description.replace('MOD', anointment.mod)}<br>`
-
-        if (_.has(anointment, 'mod2')) {
-          description += `${anointment.description2.replace('MOD2', anointment.mod2)}<br>`
-        }
-
-        return description + '+5% Monster pack size'
-      } else {
-        return anointment.description
-      }
-    },
-    sortBy: function(key) {
-      if (this.sortKey === key) {
-        this.sortOrder = this.sortOrder === 'asc' ? 'desc' : 'asc'
-      } else {
-        this.sortOrder = 'asc'
-      }
-
-      this.sortKey = key
-    },
-    sortHeader: function(key) {
-      if (this.sortKey === key.toLowerCase()) {
-        return `<u>${key}</u>${this.sortOrder === 'asc' ? "\u23F7" : "\u23F6"}`
-      } else {
-        return `<u>${key}</u>`
-      }
-    }
-  },
-  computed: {
-    searchResults: function() {
-      const search = this.search.toLowerCase()
-      const oils = _.map(this.myOils, function(x) { return parseInt(x) })
-      const oilCount = _.sum(oils)
-      const maxOils = this.isMapType() ? 1 : this.$parent.maxOils
-      const type = this.type
-      var results = this.anointments
-
-      if (search !== '') {
-        results = _.pickBy(results, function(anointment) {
-          return anointment.name.toLowerCase().indexOf(search) > -1 ||
-            anointment.description.toLowerCase().indexOf(search) > -1
-        })
-      }
-
-      if (oilCount > 0 && oilCount < maxOils) {
-        // Show no results if an inadequate amount of oils are selected
-        results = {}
-      } else if (oilCount >= maxOils) {
-        results = _.pickBy(results, function(anointment) {
-          var value = anointment.value
-          var totalUsed = 0
-
-          // Loop through the user's selected oils, from largest to smallest
-          for (i = oils.length - 1; i > -1; i--) {
-            const oilValue = 3 ** i
-            // If the value of the oil fits into our running value of the anointment, we can use it
-            for (q = oils[i]; q > 0 && (value > oilValue || value === oilValue && totalUsed >= maxOils - 1); q--) {
-              value -= oilValue
-              totalUsed += 1
-            }
-          }
-
-          // If we managed to bring the value of the anointment down to 0, it is obtainable
-          return value === 0
-        })
-      }
-
-      // Sort the anointments based on the selected column
-      if (this.sortKey !== null) {
-        const key = this.sortKey
-        results = _.sortBy(_.values(results), function(result) { return result[key] })
-        if (this.sortOrder === 'desc') {
-          results = _.reverse(results)
-        }
-      }
-
-      refreshTableTooltips()
-
-      console.log(results)
-      return results
-    }
-  }
-})
-
 Vue.component('distilled-emotions-table', {
-  props: ['passives', 'type', 'search', 'myOils'],
+  props: ['passives', 'type', 'search', 'myDistilled'],
   data: function() {
     return { sortKey: null, sortOrder: 'asc' }
   },
@@ -410,48 +278,48 @@ Vue.component('distilled-emotions-table', {
       } else {
         return `<u>${key}</u>`
       }
+    },
+    flatMyDistilled: function(obj) {
+      return Object.entries(obj).flatMap(([key, value]) => Array(parseInt(value)||0).fill(key));
+    },
+    hasSufficientElements: function(xs, ys) {
+      const xsCopy = [...xs]
+      return ys.every(item => {
+        const index = xsCopy.indexOf(item)
+        if (index !== -1) {
+          xsCopy.splice(index, 1)
+          return true
+        }
+        return false
+      });
     }
   },
   computed: {
     searchResults: function() {
       const search = this.search.toLowerCase()
-      const oils = _.map(this.myOils, function(x) { return parseInt(x) })
-      const oilCount = _.sum(oils)
-      const maxOils = this.$parent.maxOils
+      const myDistilled = this.flatMyDistilled(this.myDistilled)
+      const distilledCount = myDistilled.length
       var results = this.passives
+      if (search !== '') {
+        results = _.pickBy(results, function(passive) {
+          return passive.name.toLowerCase().indexOf(search) > -1 ||
+          passive.description.toLowerCase().indexOf(search) > -1
+        })
+      }
+      
+      console.log(myDistilled)
+      if (distilledCount >= 3) {
+        results = _.pickBy(results, passive => this.hasSufficientElements(
+          myDistilled, passive.combo.map(x => x.name)) )
+      }
 
-      // if (search !== '') {
-      //   results = _.pickBy(results, function(anointment) {
-      //     return anointment.name.toLowerCase().indexOf(search) > -1 ||
-      //       anointment.description.toLowerCase().indexOf(search) > -1
-      //   })
-      // }
-
-      // if (oilCount > 0 && oilCount < maxOils) {
-      //   // Show no results if an inadequate amount of oils are selected
-      //   results = {}
-      // } else if (oilCount >= maxOils) {
-      //   results = _.pickBy(results, function(anointment) {
-      //     var value = anointment.value
-      //     var totalUsed = 0
-
-      //     // Loop through the user's selected oils, from largest to smallest
-      //     for (i = oils.length - 1; i > -1; i--) {
-      //       const oilValue = 3 ** i
-      //       // If the value of the oil fits into our running value of the anointment, we can use it
-      //       for (q = oils[i]; q > 0 && (value > oilValue || value === oilValue && totalUsed >= maxOils - 1); q--) {
-      //         value -= oilValue
-      //         totalUsed += 1
-      //       }
-      //     }
-
-      //     // If we managed to bring the value of the anointment down to 0, it is obtainable
-      //     return value === 0
-      //   })
-      // }
-
-      // Sort the distilledEmotion based on the selected column
-      // 
+      if (this.sortKey !== null) {
+        const key = this.sortKey
+        results = _.sortBy(_.values(results), function(result) { return result[key] })
+        if (this.sortOrder === 'desc') {
+          results = _.reverse(results)
+        }
+      }
 
       refreshTableTooltips()
       return results
