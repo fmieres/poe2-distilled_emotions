@@ -1,42 +1,42 @@
 {
     "Distilled Fear": {
         "href": "/us/Distilled_Fear",
-        "img": "https://cdn.poe2db.tw/image/art/2ditems/currency/distilledemotions/distilledfear.webp"
+        "img": "img/distilledemotions/distilledfear.webp"
     },
     "Distilled Disgust": {
         "href": "/us/Distilled_Disgust",
-        "img": "https://cdn.poe2db.tw/image/art/2ditems/currency/distilledemotions/distilleddisgust.webp"
+        "img": "img/distilledemotions/distilleddisgust.webp"
     },
     "Distilled Guilt": {
         "href": "/us/Distilled_Guilt",
-        "img": "https://cdn.poe2db.tw/image/art/2ditems/currency/distilledemotions/distilledguilt.webp"
+        "img": "img/distilledemotions/distilledguilt.webp"
     },
     "Distilled Paranoia": {
         "href": "/us/Distilled_Paranoia",
-        "img": "https://cdn.poe2db.tw/image/art/2ditems/currency/distilledemotions/distilledparanoia.webp"
+        "img": "img/distilledemotions/distilledparanoia.webp"
     },
     "Distilled Ire": {
         "href": "/us/Distilled_Ire",
-        "img": "https://cdn.poe2db.tw/image/art/2ditems/currency/distilledemotions/distilledire.webp"
+        "img": "img/distilledemotions/distilledire.webp"
     },
     "Distilled Isolation": {
         "href": "/us/Distilled_Isolation",
-        "img": "https://cdn.poe2db.tw/image/art/2ditems/currency/distilledemotions/distilledisolation.webp"
+        "img": "img/distilledemotions/distilledisolation.webp"
     },
     "Distilled Suffering": {
         "href": "/us/Distilled_Suffering",
-        "img": "https://cdn.poe2db.tw/image/art/2ditems/currency/distilledemotions/distilledsuffering.webp"
+        "img": "img/distilledemotions/distilledsuffering.webp"
     },
     "Distilled Greed": {
         "href": "/us/Distilled_Greed",
-        "img": "https://cdn.poe2db.tw/image/art/2ditems/currency/distilledemotions/distilledgreed.webp"
+        "img": "img/distilledemotions/distilledgreed.webp"
     },
     "Distilled Envy": {
         "href": "/us/Distilled_Envy",
-        "img": "https://cdn.poe2db.tw/image/art/2ditems/currency/distilledemotions/distilledenvy.webp"
+        "img": "img/distilledemotions/distilledenvy.webp"
     },
     "Distilled Despair": {
         "href": "/us/Distilled_Despair",
-        "img": "https://cdn.poe2db.tw/image/art/2ditems/currency/distilledemotions/distilleddespair.webp"
+        "img": "img/distilledemotions/distilleddespair.webp"
     }
 }
