@@ -35,6 +35,7 @@ const app = new Vue({
     maps: {},
     search: '',
     myDistilled: {},
+    myDistilledDefault : {},
     myOils: _.fill(Array(14), 0)
   },
   created: function () {
@@ -47,8 +48,9 @@ const app = new Vue({
           fx.push({name:x, image: data[x].img })
           return fx
         } , [])
-      self.myDistilled = Object.keys(data).reduce(
-        (fx,x) => ({...fx, [x]:0 }) , {})
+        self.myDistilled = Object.keys(data).reduce(
+          (fx,x) => ({...fx, [x]:0 }) , {})
+        self.myDistilledDefault = { ...self.myDistilled }
     })
     $.getJSON(`vendor/passives2.json`, function (data) {
       self.passives2 = Object.keys(data).reduce(
@@ -153,6 +155,7 @@ const app = new Vue({
       this.search = ''
       this.combo = []
       this.myOils = _.fill(Array(14), 0)
+      this.myDistilled = {...this.myDistilledDefault}
     }
   },
   computed: {
